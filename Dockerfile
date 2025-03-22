@@ -13,8 +13,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Activer mod_rewrite pour Symfony
 RUN a2enmod rewrite
 
+# Copier les fichiers du projet
+COPY . /var/www/html/
+
 # Définir le répertoire de travail
-WORKDIR /srv/app
+WORKDIR /var/www/html
 
 # Copier les fichiers de configuration Apache
 COPY ./vhost.conf /etc/apache2/sites-available/000-default.conf

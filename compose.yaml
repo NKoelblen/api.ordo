@@ -7,7 +7,7 @@ services:
             context: .
         container_name: api_ordo_web
         volumes:
-            - .:/srv/app
+            - .:/var/www/html
         ports:
             - '80:80'
         environment:
