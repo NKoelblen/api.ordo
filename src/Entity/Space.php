@@ -3,13 +3,22 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GraphQl\DeleteMutation;
+use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use App\Repository\SpaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpaceRepository::class)]
-#[ApiResource]
+#[ApiResource(graphQlOperations: [
+    new Query(name: "item_query"),
+    new QueryCollection(name: "collection_query"),
+    new Mutation(name: "create"),
+    new DeleteMutation(name: "delete")
+])]
 class Space
 {
     #[ORM\Id]
@@ -36,7 +45,7 @@ class Space
     private Collection $children;
 
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private \DateTimeImmutable $createdAt;
+    private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
