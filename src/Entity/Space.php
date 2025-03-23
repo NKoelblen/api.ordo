@@ -17,13 +17,16 @@ use App\Entity\Trait\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: SpaceRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ApiResource(graphQlOperations: [
-    new Query(name: "item_query"),
-    new QueryCollection(name: "collection_query"),
-    new Mutation(name: "create"),
-    new Mutation(name: "update"),
-    new DeleteMutation(name: "delete")
-])]
+#[ApiResource(
+    graphQlOperations: [
+        new Query(name: "item_query"),
+        new QueryCollection(name: "collection_query"),
+        new Mutation(name: "create"),
+        new Mutation(name: "update"),
+        new DeleteMutation(name: "delete")
+    ],
+    order: ['name' => 'ASC']
+)]
 #[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
 class Space
 {
