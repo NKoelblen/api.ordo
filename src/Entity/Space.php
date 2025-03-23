@@ -11,16 +11,21 @@ use App\Repository\SpaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Trait\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: SpaceRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource(graphQlOperations: [
     new Query(name: "item_query"),
     new QueryCollection(name: "collection_query"),
     new Mutation(name: "create"),
+    new Mutation(name: "update"),
     new DeleteMutation(name: "delete")
 ])]
 class Space
 {
+    use TimestampableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -44,16 +49,9 @@ class Space
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
     private Collection $children;
 
-    #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
-
     public function __construct()
     {
         $this->children = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -135,30 +133,6 @@ class Space
                 $child->setParent(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
 
         return $this;
     }
