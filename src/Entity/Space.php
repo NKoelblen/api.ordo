@@ -91,6 +91,7 @@ class Space
     public function setProfessional(bool $professional): static
     {
         $this->professional = $professional;
+        $this->setChildrenProfessional();
 
         return $this;
     }
@@ -103,6 +104,10 @@ class Space
     public function setParent(?self $parent): static
     {
         $this->parent = $parent;
+
+        if ($parent !== null) {
+            $this->professional = $parent->isProfessional();
+        }
 
         return $this;
     }
@@ -135,5 +140,13 @@ class Space
         }
 
         return $this;
+    }
+
+    public function setChildrenProfessional(): void
+    {
+        foreach ($this->children as $child) {
+            $child->setProfessional($this->professional);
+            $child->setChildrenProfessional();
+        }
     }
 }
