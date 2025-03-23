@@ -79,6 +79,7 @@ class Space
     public function setStatus(string $status): static
     {
         $this->status = $status;
+        $this->setChildrenStatus();
 
         return $this;
     }
@@ -147,6 +148,14 @@ class Space
         foreach ($this->children as $child) {
             $child->setProfessional($this->professional);
             $child->setChildrenProfessional();
+        }
+    }
+
+    public function setChildrenStatus(): void
+    {
+        foreach ($this->children as $child) {
+            $child->setStatus($this->status);
+            $child->setChildrenStatus();
         }
     }
 }
