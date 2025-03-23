@@ -7,6 +7,8 @@ use ApiPlatform\Metadata\GraphQl\DeleteMutation;
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\SpaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -22,6 +24,7 @@ use App\Entity\Trait\TimestampableTrait;
     new Mutation(name: "update"),
     new DeleteMutation(name: "delete")
 ])]
+#[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
 class Space
 {
     use TimestampableTrait;
