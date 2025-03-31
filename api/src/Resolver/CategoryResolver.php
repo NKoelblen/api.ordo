@@ -3,48 +3,48 @@
 namespace App\Resolver;
 
 use ApiPlatform\GraphQl\Resolver\MutationResolverInterface;
-use App\Entity\Member;
+use App\Entity\Category;
 use App\Entity\Space;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-final class MemberResolver implements MutationResolverInterface
+final class CategoryResolver implements MutationResolverInterface
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {
     }
-    public function __invoke(?object $item, array $context): Member
+    public function __invoke(?object $item, array $context): Category
     {
         $input = $context['args']['input'];
 
         if ($item === null) {
-            $member = new Member();
+            $category = new Category();
         } else {
-            if (!$item instanceof Member) {
-                throw new \RuntimeException('Invalid Member entity');
+            if (!$item instanceof Category) {
+                throw new \RuntimeException('Invalid Category entity');
             }
-            $member = $item;
+            $category = $item;
         }
 
         if (isset($input['name'])) {
-            $member->setName($input['name']);
+            $category->setName($input['name']);
         }
 
         if (isset($input['color'])) {
-            $member->setColor($input['color']);
+            $category->setColor($input['color']);
         }
         if (isset($input['icon'])) {
-            $member->setIcon($input['icon']);
+            $category->setIcon($input['icon']);
         }
         if (array_key_exists('personalizedIconFile', $input)) {
             $file = $input['personalizedIconFile'];
 
             if ($file === null) {
-                $member->setPersonalizedIconFile(null);
+                $category->setPersonalizedIconFile(null);
             } elseif (!$file instanceof UploadedFile) {
                 throw new \RuntimeException('Invalid file uploaded');
             } else {
-                $member->setPersonalizedIconFile($file);
+                $category->setPersonalizedIconFile($file);
             }
         }
 
@@ -53,12 +53,20 @@ final class MemberResolver implements MutationResolverInterface
             if ($space === null) {
                 throw new \RuntimeException('Space not found');
             }
-            $member->setSpace($space);
+            $category->setSpace($space);
         }
 
-        $this->entityManager->persist($member);
+        if (isset($input['parent'])) {
+            $parent = $this->entityManager->getRepository(Category::class)->find(explode('/', $input['parent'])[2]);
+            if ($parent === null) {
+                throw new \RuntimeException('Parent Category not found');
+            }
+            $category->setParent($parent);
+        }
+
+        $this->entityManager->persist($category);
         $this->entityManager->flush();
 
-        return $member;
+        return $category;
     }
 }

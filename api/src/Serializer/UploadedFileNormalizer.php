@@ -2,6 +2,7 @@
 
 namespace App\Serializer;
 
+use App\Entity\Category;
 use App\Entity\Member;
 use App\Entity\Space;
 use Vich\UploaderBundle\Storage\StorageInterface;
@@ -36,14 +37,15 @@ class UploadedFileNormalizer implements NormalizerInterface
             return false;
         }
 
-        return $data instanceof Space | $data instanceof Member;
+        return $data instanceof Space | $data instanceof Member | $data instanceof Category;
     }
 
     public function getSupportedTypes(?string $format): array
     {
         return [
             Space::class => true,
-            Member::class => true
+            Member::class => true,
+            Category::class => true,
         ];
     }
 }
