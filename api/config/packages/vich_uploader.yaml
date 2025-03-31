@@ -1,0 +1,9 @@
+vich_uploader:
+    db_driver: orm
+    metadata:
+        type: attribute
+    mappings:
+        space_icon:
+            uri_prefix: /medias/spaces
+            upload_destination: "%kernel.project_dir%/public/medias/spaces"
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
