@@ -2,6 +2,7 @@
 
 namespace App\Serializer;
 
+use App\Entity\Member;
 use App\Entity\Space;
 use Vich\UploaderBundle\Storage\StorageInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -35,13 +36,14 @@ class UploadedFileNormalizer implements NormalizerInterface
             return false;
         }
 
-        return $data instanceof Space;
+        return $data instanceof Space | $data instanceof Member;
     }
 
     public function getSupportedTypes(?string $format): array
     {
         return [
             Space::class => true,
+            Member::class => true
         ];
     }
 }

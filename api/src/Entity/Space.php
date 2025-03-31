@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\GraphQl\DeleteMutation;
 use ApiPlatform\Metadata\GraphQl\Mutation;
+use App\Entity\Trait\GraphicTrait;
 use App\Resolver\SpaceResolver;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
@@ -23,8 +24,8 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Entity(repositoryClass: SpaceRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
-    normalizationContext: ['groups' => ['space_read']],
-    denormalizationContext: ['groups' => ['space_write'], 'disable_type_enforcement' => true],
+    normalizationContext: ['groups' => ['read']],
+    denormalizationContext: ['groups' => ['write'], 'disable_type_enforcement' => true],
     types: ['https://schema.org/MediaObject'],
     graphQlOperations: [
         new Query(name: "item_query"),
@@ -40,7 +41,8 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
                 'parent' => ['type' => 'String'],
                 'color' => ['type' => 'String'],
                 'icon' => ['type' => 'String'],
-                'personalizedIconFile' => ['type' => 'Upload']
+                'personalizedIconFile' => ['type' => 'Upload'],
+                'members' => ['type' => '[String]'],
             ],
         ),
         new Mutation(
@@ -55,7 +57,8 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
                 'parent' => ['type' => 'String'],
                 'color' => ['type' => 'String'],
                 'icon' => ['type' => 'String'],
-                'personalizedIconFile' => ['type' => 'Upload']
+                'personalizedIconFile' => ['type' => 'Upload'],
+                'members' => ['type' => '[String]'],
             ]
         ),
         new DeleteMutation(name: "delete")
@@ -67,28 +70,29 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class Space
 {
     use TimestampableTrait;
+    use GraphicTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['space_read', 'space_write'])]
+    #[Groups(['read', 'write'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['space_read', 'space_write'])]
+    #[Groups(['read', 'write'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, options: ['default' => 'open'])]
-    #[Groups(['space_read', 'space_write'])]
+    #[Groups(['read', 'write'])]
     private string $status = 'open';
 
     #[ORM\Column(options: ['default' => false])]
-    #[Groups(['space_read', 'space_write'])]
+    #[Groups(['read', 'write'])]
     private ?bool $professional = false;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
     #[ApiProperty(readableLink: false, writableLink: false)]
-    #[Groups(['space_read', 'space_write'])]
+    #[Groups(['read', 'write'])]
     private ?self $parent = null;
 
     /**
@@ -96,32 +100,24 @@ class Space
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
     #[ApiProperty(readableLink: false, writableLink: false)]
-    #[Groups(['space_read'])]
+    #[Groups(['read'])]
     private Collection $children;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['space_read', 'space_write'])]
-    private ?string $color = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['space_read', 'space_write'])]
-    private ?string $icon = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[ApiProperty(writable: false)]
-    public ?string $personalizedIcon = null;
-
-    #[ApiProperty(types: ['https://schema.org/contentUrl'], writable: false)]
-    #[Groups(['space_read'])]
-    public ?string $personalizedIconUrl = null;
-
     #[Vich\UploadableField(mapping: "space_icon", fileNameProperty: "personalizedIcon")]
-    #[Groups(['space_write'])]
+    #[Groups(['write'])]
     public ?File $personalizedIconFile = null;
+
+    /**
+     * @var Collection<int, Member>
+     */
+    #[ORM\OneToMany(targetEntity: Member::class, mappedBy: 'space')]
+    #[Groups(['read', 'write'])]
+    private Collection $members;
 
     public function __construct()
     {
         $this->children = new ArrayCollection();
+        $this->members = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -229,62 +225,33 @@ class Space
         }
     }
 
-    public function getColor(): ?string
+    /**
+     * @return Collection<int, Member>
+     */
+    public function getMembers(): Collection
     {
-        return $this->color;
+        return $this->members;
     }
 
-    public function setColor(?string $color): static
+    public function addMember(Member $member): static
     {
-        $this->color = $color;
-
-        return $this;
-    }
-
-    public function getIcon(): ?string
-    {
-        return $this->icon;
-    }
-
-    public function setIcon(?string $icon): static
-    {
-        $this->icon = $icon;
-
-        return $this;
-    }
-    public function getPersonalizedIcon(): ?string
-    {
-        return $this->personalizedIcon;
-    }
-
-    public function setPersonalizedIcon(?string $personalizedIcon): static
-    {
-        $this->personalizedIcon = $personalizedIcon;
-
-        return $this;
-    }
-
-    public function getPersonalizedIconFile(): ?File
-    {
-        return $this->personalizedIconFile;
-    }
-
-    public function setPersonalizedIconFile(?File $file = null): void
-    {
-        if ($file === null) {
-            $this->setPersonalizedIcon(null);
+        if (!$this->members->contains($member)) {
+            $this->members->add($member);
+            $member->setSpace($this);
         }
-        $this->personalizedIconFile = $file;
-        $this->setUpdatedAtValue();
+
+        return $this;
     }
 
-    public function setPersonalizedIconUrl(?string $url): void
+    public function removeMember(Member $member): static
     {
-        $this->personalizedIconUrl = $url;
-    }
+        if ($this->members->removeElement($member)) {
+            // set the owning side to null (unless already changed)
+            if ($member->getSpace() === $this) {
+                $member->setSpace(null);
+            }
+        }
 
-    public function getPersonalizedIconUrl(): ?string
-    {
-        return $this->personalizedIconUrl;
+        return $this;
     }
 }
