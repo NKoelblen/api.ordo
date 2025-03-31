@@ -28,27 +28,17 @@ final class SpaceResolver implements MutationResolverInterface
         if (isset($input['name'])) {
             $space->setName($input['name']);
         }
-        if (isset($input['status'])) {
-            $space->setStatus($input['status']);
-        }
+
         if (isset($input['professional'])) {
             $space->setProfessional($input['professional']);
         }
+
         if (isset($input['color'])) {
             $space->setColor($input['color']);
         }
         if (isset($input['icon'])) {
             $space->setIcon($input['icon']);
         }
-        if (isset($input['parent'])) {
-            error_log('Parent Space ID: ' . json_encode(explode('/', $input['parent'])));
-            $parent = $this->entityManager->getRepository(Space::class)->find(explode('/', $input['parent'])[2]);
-            if ($parent === null) {
-                throw new \RuntimeException('Parent Space not found');
-            }
-            $space->setParent($parent);
-        }
-
         if (array_key_exists('personalizedIconFile', $input)) {
             $file = $input['personalizedIconFile'];
 
@@ -59,6 +49,18 @@ final class SpaceResolver implements MutationResolverInterface
             } else {
                 $space->setPersonalizedIconFile($file);
             }
+        }
+
+        if (isset($input['parent'])) {
+            $parent = $this->entityManager->getRepository(Space::class)->find(explode('/', $input['parent'])[2]);
+            if ($parent === null) {
+                throw new \RuntimeException('Parent Space not found');
+            }
+            $space->setParent($parent);
+        }
+
+        if (isset($input['status'])) {
+            $space->setStatus($input['status']);
         }
 
         $this->entityManager->persist($space);
