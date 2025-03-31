@@ -1,0 +1,14 @@
+api_platform:
+    title: Hello API Platform
+    version: 1.0.0
+    # Mercure integration, remove if unwanted
+    mercure:
+        include_type: true
+    # Good defaults for REST APIs
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ["Content-Type", "Authorization", "Origin"]
+    formats:
+        graphql: ["application/graphql"]
+        multipart: ["multipart/form-data"]
