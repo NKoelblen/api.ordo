@@ -8,7 +8,8 @@
 
 {$CADDY_EXTRA_CONFIG}
 
-{$SERVER_NAME:localhost} {
+https://localhost {
+    tls /etc/ssl/certs/fullchain.pem /etc/ssl/certs/privkey.pem
 	log {
 		# Redact the authorization query parameter that can be set by Mercure
 		format filter {

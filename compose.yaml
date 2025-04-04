@@ -18,6 +18,9 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - ~/certs/localhost.pem:/etc/ssl/certs/fullchain.pem:ro
+      - ~/certs/localhost-key.pem:/etc/ssl/certs/privkey.pem:ro
+      - ~/.local/share/mkcert/rootCA.pem:/etc/ssl/certs/mkcert-rootCA.pem:ro
     ports:
       # HTTP
       - target: 80
@@ -37,7 +40,7 @@ services:
     environment:
       NEXT_PUBLIC_ENTRYPOINT: http://php
 
-###> doctrine/doctrine-bundle ###
+  ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
@@ -46,7 +49,15 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-!ChangeMe!}
       - POSTGRES_USER=${POSTGRES_USER:-app}
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-d",
+          "${POSTGRES_DB:-app}",
+          "-U",
+          "${POSTGRES_USER:-app}",
+        ]
       timeout: 5s
       retries: 5
       start_period: 60s
@@ -63,7 +74,7 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-###> doctrine/doctrine-bundle ###
+  ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###
 ###> symfony/mercure-bundle ###
